@@ -5,13 +5,15 @@ const YAML = require('yaml')
 // states provided by covidlive.com.au
 const statesData = {
     nsw: {
-        color: '9829'
+        color: '9829',
+        url: 'https://www.youtube.com/watch?v=dtYFBzsy3Ds'
     },
     qld: {
         color: '4198428'
     },
     vic: {
-        color: '30592'
+        color: '30592',
+        url: 'https://www.youtube.com/watch?v=Ns15eHLDv1I'
     },
     act: {
         color: '2762856'
@@ -164,7 +166,7 @@ const mergeStatesData = (covidStatesData, states) => {
 
         embeds.push({
             title: `**${state.toUpperCase()}**`,
-            url: `${baseurl}/${state}`,
+            url: statesData[state].url ? statesData[state].url : `${baseurl}/${state}`, // easter eggs
             fields: covidStatesData[state],
             color: statesData[state].color,
         })
@@ -221,7 +223,7 @@ const publishCovidData = async (targetServers, covidStatesData) => {
             await axios.post(hook, {
                 username: `COVID Daily ${getDate()}`,
                 embeds,
-                content: `:christmas_tree:Data retrieved from [COVID Live](${baseurl}) :christmas_tree: \n Source code available [here](https://github.com/duong/covid-bot)`
+                content: `:christmas_tree: Data retrieved from [COVID Live](${baseurl}) :christmas_tree: \n:santa: Source code available [here](https://github.com/duong/covid-bot) :santa:`
             })
         } catch (e) {
             console.error('Failed to publish data ', embeds)
