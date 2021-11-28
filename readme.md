@@ -2,6 +2,8 @@
 
 This bot publishes information about Australia's covid cases daily.
 
+![alt text](https://github.com/duong/covid-bot/blob/master/example-covid.PNG?raw=true)
+
 ## Commands
 
 Testing: 
