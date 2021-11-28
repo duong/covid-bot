@@ -1,77 +1,112 @@
 const axios = require('axios')
 const cheerio = require('cheerio')
+const YAML = require('yaml')
 
-const baseurl = 'https://covidlive.com.au/report/daily-summary'
+// states provided by covidlive.com.au
+const statesData = {
+    nsw: {
+        color: '9829'
+    },
+    qld: {
+        color: '4198428'
+    },
+    vic: {
+        color: '30592'
+    },
+    act: {
+        color: '2762856'
+    },
+    wa: {
+        color: '2055992'
+    },
+    sa: {
+        color: '15537995'
+    },
+    nt: {
+        color: '13126657'
+    },
+    tas: {
+        color: '11905114'
+    },
+}
+const states = Object.keys(statesData)
+const baseurl = 'https://covidlive.com.au/report/daily-summary' // data source
 
-let squidChannelHook
-let optusAmongUsHook
-squidChannelHook = 'https://discordapp.com/api/webhooks/864122791242498108/IQ00RhZni9e8s5AF2HQIXFUinIFJOc67KQQ4O1JjImTbkv88soNNU3AY6mbGuGu8SRZR'
-optusAmongUsHook = 'https://discordapp.com/api/webhooks/864123793156210689/-Ex_V_SDXA7w6ZFSkVKvNMmXNQ8g-6OK1KLnciOwzspdbg3WeRT-Kdc4jLxpflzxNr8S'
-const duongDevHook = 'https://discordapp.com/api/webhooks/864108597158739970/9_w9BbECd33TVcicB4XjCGGXeQWHAVROqHjMjfn0_KOeuapWWBxafqhFDJSkaQf3ITqn'
-
-const australianStatesToHook = {
-    nsw: [
-        duongDevHook,
-        squidChannelHook,
-        optusAmongUsHook
-    ],
-    qld: [
-        duongDevHook,
-        squidChannelHook,
-    ],
-    vic: [
-        duongDevHook,
-        squidChannelHook,
-    ]
+const isNumeric = (value) => {
+    return /^[0-9,. %>]*$/.test(value);
 }
 
-function isNumeric(value) {
-    return /^[0-9,. ]*$/.test(value);
-}
-
-const formatResults = (results, source) => {
+// Formats the scraped data into ready to be published form
+const formatResults = (results, state) => {
     const dailyUpdateOrder = [
         {
             label: 'Total locally acquired cases',
             key: 'Cases',
             total: 0,
-            change: 2
+            change: 2,
+            inline: false,
+        },
+        // {
+        //     label: 'Total overseas acquired cases',
+        //     key: 'Overseas',
+        //     total: 0,
+        //     change: 2
+        // },
+        {
+            label: '1st Dose',
+            key: 'COVID LIVE',
+            total: 0,
+            inline: true,
         },
         {
-            label: 'Total overseas acquired cases',
-            key: 'Overseas',
-            total: 0,
-            change: 2
+            label: '2nd Dose',
+            key: 'COVID LIVE',
+            total: 1,
+            inline: true,
         },
         {
             label: 'Tests',
             key: 'Tests',
             total: 0,
-            change: 2
+            change: 2,
+            inline: false,
         },
         {
             label: 'Deaths',
             key: 'Deaths',
             total: 0,
-            change: 2
+            change: 2,
+            inline: true,
         },
-        {
-            label: 'Hospitalised',
-            key: 'Hospitalised',
-            total: 0,
-            change: 2
-        },
+        // {
+        //     label: 'Hospitalised',
+        //     key: 'Hospitalised',
+        //     total: 0,
+        //     change: 2
+        // },
     ]
 
-    let stringResult = ''
+    const fields = []
+
     for (let i = 0; i < dailyUpdateOrder.length; i++) {
         const data = dailyUpdateOrder[i]
 
         try {
-            const change = results[data.key][data.change]
-            const total = results[data.key][data.total]
+
+            const change = data.change != undefined ? results[data.key][data.change] : null
+            const total = data.total != null ? results[data.key][data.total] : null
             const label = data.label
-            stringResult += `${label}: ${total} (+${change})\n`
+
+            let value = ''
+            value += total
+            if (change) {
+                value += `(+${change})`
+            }
+            fields.push({
+                name: data.label,
+                value,
+                inline: data.inline,
+            })
         } catch (error) {
             console.error(`Failed formatting data for label: ${data.label}, key: ${data.total}}`)
             console.error(results)
@@ -79,10 +114,7 @@ const formatResults = (results, source) => {
         }
     }
 
-    stringResult += `\nRetrieved from ${source}\n\n`
-
-
-    return stringResult
+    return fields
 }
 
 const getDate = () => {
@@ -98,61 +130,143 @@ const getDate = () => {
     return date + "-" + month + "-" + year
 }
 
-const getCovidData = async (state) => {
-    const covidResults = {}
-    const url = `${baseurl}/${state}`
+// Does some web scraping from the given cheerio data
+const scrapStateData = (data) => {
+    const stateData = {}
+    
+    const $ = cheerio.load(data)
+    const table = $('table > tbody > tr > td')
+    let key = ''
+    table.each((i, element) => {
+        if (!$(element).attr('class').includes('Header')) {
+            const text = $(element).text().trim().replace( /\s\s+/g, ' ' )
+            if (isNumeric(text)) {
+                stateData[key].push(text)
+            } else {
+                key = text
+                if (!stateData[key]) {
+                    stateData[key] = []
+                }
+            }
+        }
+    })
 
-    let res
-    try {
-        res = await axios.get(url)
-    } catch (error) {
-        console.error('Error when getting covid data')
-        console.error(error)
+    return stateData
+}
+
+const mergeStatesData = (covidStatesData, states) => {
+    const embeds = []
+
+    let stringResult = ''
+
+    for (let i = 0; i < states.length; i++) {
+        const state = states[i]
+
+        embeds.push({
+            title: `**${state.toUpperCase()}**`,
+            url: `${baseurl}/${state}`,
+            fields: covidStatesData[state],
+            color: statesData[state].color,
+        })
     }
-    if (res) {
-        const $ = cheerio.load(res.data)
-        const table = $('table > tbody > tr > td')
-        let key = ''
-        table.each((i, element) => {
-            // console.log(i, $(element).text().trim())
-            if (!$(element).attr('class').includes('Header')) {
-                const text = $(element).text().trim().replace( /\s\s+/g, ' ' )
-                if (isNumeric(text)) {
-                    // console.log('is num', text)
-                    covidResults[key].push(text)
-                } else {
-                    // console.log('is keys', text)
-                    key = text
-                    if (!covidResults[key]) {
-                        covidResults[key] = []
-                    }
-                }
-                // console.log($(element).attr('class'))
-            }
-        })
-        const content = formatResults(covidResults, url)
-        console.log(content)
 
-        const webhooks = australianStatesToHook[state]
-        webhooks.forEach(async (webhook) => {
-            if (webhook) {
-                try {
-                    await axios.post(webhook, { username: `${state.toUpperCase()} COVID Daily ${getDate()}`, content })
-                } catch (e) {
-                    console.log(e)
-                }
-            }
-        })
-    } else {
-        console.error('No result from axios')
+    return embeds
+}
+
+/**
+ * Gets covid data for all states
+ */
+const getCovidData = async () => {
+    console.log('Getting covid data for states:', states)
+    const covidStatesData = {}
+    for (let i = 0; i < states.length; i++) {
+        const state = states[i]
+
+        // Retrieve state data
+        const url = `${baseurl}/${state}`
+        let res
+        try {
+            res = await axios.get(url)
+        } catch (error) {
+            console.error(`Error when getting covid data for state ${state}`)
+            console.error(error)
+        }
+
+        // Scrape the data and format it
+        if (res && res.data) {
+            console.log('Scraping data for state', state)
+            const stateData = scrapStateData(res.data)
+            console.log('Got scraped data', stateData)
+            const content = formatResults(stateData, state)
+            console.log('Got formatted results: ', content)
+            covidStatesData[state] = content
+        } else {
+            console.error(`No result from axios for state ${state}`)
+        }
+    }
+    return covidStatesData
+}
+
+const publishCovidData = async (targetServers, covidStatesData) => {
+    const keys = Object.keys(targetServers)
+    for (let i = 0; i < keys.length; i++) {
+        const serverName = keys[i]
+        const targetServer = targetServers[serverName]
+        console.log('processing target server, ', targetServer)
+        const { hook, states } = targetServer
+
+        const embeds = mergeStatesData(covidStatesData, states)
+        console.log('embeds', embeds)
+        try {
+            await axios.post(hook, {
+                username: `COVID Daily ${getDate()}`,
+                embeds,
+                content: `:christmas_tree:Data retrieved from [COVID Live](${baseurl}) :christmas_tree: \n Source code available [here](https://github.com/duong/covid-bot)`
+            })
+        } catch (e) {
+            console.error('Failed to publish data ', embeds)
+            console.error(e)
+        }
     }
 }
 
 const main = async () => {
-    const states = Object.keys(australianStatesToHook)
-    states.forEach(async state => {
-        await getCovidData(state)
-    })
+    // Check the TARGET_SERVERS env variable is supplied
+    if (!process.env.TARGET_SERVERS) {
+        console.error('TARGET_SERVERS environement variable not provided. Please ensure TARGET_SERVERS is set')
+        process.exit(1)
+    }
+
+    // Parse TARGET_SERVERS data
+    console.log('Parsing target servers data')
+    let targetServers
+    try {
+        targetServers = YAML.parse(process.env.TARGET_SERVERS)
+    } catch (error) {
+        console.error('Failed to parse TARGET_SERVERS, ensure TARGET_SERVERS is valid yml')
+        throw error
+    }
+
+    // Ensure each object has hook and states
+    console.log('Validating input for TARGET_SERVERS: ', targetServers)
+    const keys = Object.keys(targetServers)
+    for (let i = 0; i < keys.length; i++) {
+        const name = keys[i]
+        const server = targetServers[name]
+        if (!server.hook || !server.states || server.states.length == 0) {
+            console.error('Invalid TARGET_SERVERS structure, please ensure all servers have a valid hook and states')
+            process.exit(1)
+        }
+    }
+
+    // Start the bot
+    console.log('Successfully validated input, starting covid reporting bot...')
+    const covidStatesData = await getCovidData(targetServers)
+    console.log('covidStatesData', covidStatesData)
+    await publishCovidData(targetServers, covidStatesData)
+
+    console.log('Done.')
+    return true
 }
 
 /**
@@ -163,4 +277,4 @@ const main = async () => {
  */
 exports.helloPubSub = (event, context) => {
   main()
-};
+}

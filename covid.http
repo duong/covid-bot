@@ -1,8 +1,0 @@
-### Get today's covid data
-POST https://discordapp.com/api/webhooks/864108597158739970/9_w9BbECd33TVcicB4XjCGGXeQWHAVROqHjMjfn0_KOeuapWWBxafqhFDJSkaQf3ITqn
-Content-Type: application/json
-
-{
-    "content": "test",
-    "channel": "864084300126617630"
-}
