@@ -55,23 +55,29 @@ const formatResults = (results, state) => {
         //     change: 2
         // },
         {
-            label: '1st Dose',
+            label: '2nd Dose',
             key: 'COVID LIVE',
             total: 0,
             inline: true,
         },
         {
-            label: '2nd Dose',
+            label: '3rd Dose',
             key: 'COVID LIVE',
             total: 1,
             inline: true,
+        },
+        {
+            label: 'ICU',
+            key: 'ICU',
+            total: 0,
+            inline: false,
         },
         {
             label: 'Tests',
             key: 'Tests',
             total: 0,
             change: 2,
-            inline: false,
+            inline: true,
         },
         {
             label: 'Deaths',
