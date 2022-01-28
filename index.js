@@ -35,7 +35,7 @@ const states = Object.keys(statesData)
 const baseurl = 'https://covidlive.com.au/report/daily-summary' // data source
 
 const isNumeric = (value) => {
-    return /^[0-9,. %>]*$/.test(value);
+    return /^[0-9,. K%>]*$/.test(value);
 }
 
 // Formats the scraped data into ready to be published form
@@ -55,13 +55,13 @@ const formatResults = (results, state) => {
         //     change: 2
         // },
         {
-            label: '2nd Dose',
+            label: '3rd Dose',
             key: 'COVID LIVE',
             total: 0,
             inline: true,
         },
         {
-            label: '3rd Dose',
+            label: 'Cases 7d Avg',
             key: 'COVID LIVE',
             total: 1,
             inline: true,
@@ -73,18 +73,18 @@ const formatResults = (results, state) => {
             inline: false,
         },
         {
-            label: 'Tests',
-            key: 'Tests',
-            total: 0,
-            change: 2,
-            inline: true,
-        },
-        {
             label: 'Deaths',
             key: 'Deaths',
             total: 0,
             change: 2,
             inline: true,
+        },
+        {
+            label: 'Tests',
+            key: 'Tests',
+            total: 0,
+            change: 2,
+            inline: false,
         },
         // {
         //     label: 'Hospitalised',
@@ -108,7 +108,7 @@ const formatResults = (results, state) => {
             let value = ''
             value += total
             if (change) {
-                value += `(+${change})`
+                value += ` (+${change})`
             }
             fields.push({
                 name: data.label,
