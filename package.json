@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "TARGET_SERVERS=$(cat ./secrets/input.yml) node -e \"require('./index').helloPubSub()\""
   },
   "author": "",
   "license": "ISC",

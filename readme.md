@@ -38,13 +38,21 @@ another-server-name:
 
 ## Commands
 
-Testing: 
+Dev testing: 
 ```
-TARGET_SERVERS=$(cat ./secrets/input.yml) node -e 'require("./index").helloPubSub()'
+yarn dev
 ```
 
 ## Deployment
 
+### Automatic deployment
+
+Configured at `.github/workflows/continuous-deployment.yml`
+
+### Manual deployment
+
 Deploy to GCP
 
 ```./deploy.sh```
+
+
