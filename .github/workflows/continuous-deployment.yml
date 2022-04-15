@@ -10,7 +10,7 @@ env:
   REGION: australia-southeast1
 
 jobs:
-  job_id:
+  deploy:
     runs-on: ubuntu-latest
 
     permissions:
