@@ -45,4 +45,6 @@ TARGET_SERVERS=$(cat ./secrets/input.yml) node -e 'require("./index").helloPubSu
 
 ## Deployment
 
-Currently, this bot is manually deployed to gcp, with a pubsub topic that is executed at 11:15 am each day.
+Deploy to GCP
+
+```./deploy.sh```
