@@ -44,7 +44,7 @@ jobs:
         project_id: 'duong-dev'
         region: 'australia-southeast1'
         runtime: 'nodejs14'
-        entry_point: 'helloPubSub'
+        entry_point: 'covidBot'
         memory_mb: '128MB'
         event_trigger_type: google.pubsub.topic.publish
         event_trigger_resource: projects/duong-dev/topics/discord-covid-update2

@@ -2,7 +2,7 @@
 
 gcloud functions deploy 'discord-covid-update' \
   --trigger-topic='discord-covid-update2' \
-  --entry-point='helloPubSub' \
+  --entry-point='covidBot' \
   --memory='128MB' \
   --timeout='30s' \
   --runtime='nodejs14' \

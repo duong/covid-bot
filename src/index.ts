@@ -321,8 +321,8 @@ if (process.env.RUN_DEV) {
  * @param {!Object} event Event payload.
  * @param {!Object} context Metadata for the event.
  */
-const helloPubSub = () => {
+const covidBot = () => {
   main();
 };
 
-module.exports = { helloPubSub };
+module.exports = { covidBot };
