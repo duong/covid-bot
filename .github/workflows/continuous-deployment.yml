@@ -22,8 +22,7 @@ jobs:
 
     - id: lint
       run: |
-        yarn lint
-
+        yarn run lint
 
     - id: auth
       uses: google-github-actions/auth@v0
