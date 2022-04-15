@@ -2,4 +2,4 @@
 /package-lock.json
 /secrets
 *.log
-index.js
+build

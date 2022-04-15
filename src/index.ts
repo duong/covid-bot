@@ -1,6 +1,6 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
-import YAML from 'yaml';
+import * as YAML from 'yaml';
 import { createLogger, format, transports } from 'winston';
 
 const {
