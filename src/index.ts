@@ -1,7 +1,7 @@
-import axios from 'axios';
-import cheerio from 'cheerio';
-import * as YAML from 'yaml';
-import { createLogger, format, transports } from 'winston';
+const cheerio = require('cheerio');
+const YAML = require('yaml');
+const { createLogger, format, transports } = require('winston');
+const axios = require('axios');
 
 const {
   combine, timestamp, prettyPrint,
@@ -174,7 +174,7 @@ const scrapStateData = (data: any) => {
   const $ = cheerio.load(data);
   const table = $('table > tbody > tr > td');
   let key = '';
-  table.each((i, element) => {
+  table.each((i: number, element: any) => {
     const classAttr = $(element).attr('class');
     if (!classAttr?.includes('Header')) {
       const text = $(element).text().trim().replace(/\s\s+/g, ' ');
