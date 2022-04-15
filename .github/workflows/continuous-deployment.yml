@@ -10,6 +10,14 @@ env:
   REGION: australia-southeast1
 
 jobs:
+  lint: 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: lint
+        run: |
+          yarn lint
+
   deploy:
     runs-on: ubuntu-latest
 
