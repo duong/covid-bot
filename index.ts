@@ -1,7 +1,7 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
-const YAML = require('yaml');
-const { createLogger, format, transports } = require('winston');
+import axios from 'axios';
+import cheerio from 'cheerio';
+import YAML from 'yaml';
+import { createLogger, format, transports } from 'winston';
 
 const {
   combine, timestamp, prettyPrint,
@@ -32,7 +32,7 @@ const logger = createLogger({
 });
 
 // states provided by covidlive.com.au
-const statesData = {
+const statesData: { [state: string] : any; } = {
   nsw: {
     color: '9829',
     url: 'https://www.youtube.com/watch?v=dtYFBzsy3Ds',
@@ -63,10 +63,10 @@ const statesData = {
 const states = Object.keys(statesData);
 const baseurl = 'https://covidlive.com.au/report/daily-summary'; // data source
 
-const isNumeric = (value) => /^[0-9,. K%>]*$/.test(value);
+const isNumeric = (value: string) => /^[0-9,. K%>]*$/.test(value);
 
 // Formats the scraped data into ready to be published form
-const formatResults = (results) => {
+const formatResults = (results: any) => {
   const dailyUpdateOrder = [
     {
       label: 'Total locally acquired cases',
@@ -168,14 +168,15 @@ const getDate = () => {
 };
 
 // Does some web scraping from the given cheerio data
-const scrapStateData = (data) => {
-  const stateData = {};
+const scrapStateData = (data: any) => {
+  const stateData: { [state: string] : any; } = {};
 
   const $ = cheerio.load(data);
   const table = $('table > tbody > tr > td');
   let key = '';
   table.each((i, element) => {
-    if (!$(element).attr('class').includes('Header')) {
+    const classAttr = $(element).attr('class');
+    if (!classAttr?.includes('Header')) {
       const text = $(element).text().trim().replace(/\s\s+/g, ' ');
       if (isNumeric(text)) {
         stateData[key].push(text);
@@ -191,7 +192,7 @@ const scrapStateData = (data) => {
   return stateData;
 };
 
-const mergeStatesData = (covidStatesData) => {
+const mergeStatesData = (covidStatesData: { [state: string] : any; }) => {
   const embeds = [];
 
   for (let i = 0; i < states.length; i += 1) {
@@ -214,7 +215,7 @@ const mergeStatesData = (covidStatesData) => {
  */
 const getCovidData = async () => {
   logger.info('Getting covid data for states:', states);
-  const covidStatesData = {};
+  const covidStatesData: { [state: string] : any; } = {};
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < states.length; i++) {
     const state = states[i];
@@ -245,7 +246,7 @@ const getCovidData = async () => {
   return covidStatesData;
 };
 
-const publishCovidData = async (targetServers, covidStatesData) => {
+const publishCovidData = async (targetServers: any, covidStatesData: any) => {
   const keys = Object.keys(targetServers);
   for (let i = 0; i < keys.length; i += 1) {
     const serverName = keys[i];
@@ -280,7 +281,7 @@ const main = async () => {
 
   // Parse TARGET_SERVERS data
   logger.info('Parsing target servers data');
-  let targetServers;
+  let targetServers: { [state: string]: any; };
   try {
     targetServers = YAML.parse(process.env.TARGET_SERVERS);
   } catch (error) {
@@ -292,7 +293,7 @@ const main = async () => {
   logger.info('Validating input for TARGET_SERVERS: ', targetServers);
   const keys = Object.keys(targetServers);
   for (let i = 0; i < keys.length; i += 1) {
-    const name = keys[i];
+    const name: string = keys[i];
     const server = targetServers[name];
     if (!server.hook || !server.states || server.states.length === 0) {
       logger.error('Invalid TARGET_SERVERS structure, please ensure all servers have a valid hook and states');
@@ -302,7 +303,7 @@ const main = async () => {
 
   // Start the bot
   logger.info('Successfully validated input, starting covid reporting bot...');
-  const covidStatesData = await getCovidData(targetServers);
+  const covidStatesData = await getCovidData();
   logger.info('covidStatesData', covidStatesData);
   await publishCovidData(targetServers, covidStatesData);
 
@@ -310,12 +311,16 @@ const main = async () => {
   return true;
 };
 
+if (process.env.RUN_DEV) {
+  main();
+}
+
 /**
  * Triggered from a message on a Cloud Pub/Sub topic.
  *
  * @param {!Object} event Event payload.
  * @param {!Object} context Metadata for the event.
  */
-exports.helloPubSub = () => {
+export default function helloPubSub() {
   main();
-};
+}
