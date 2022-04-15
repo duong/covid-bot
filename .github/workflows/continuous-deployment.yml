@@ -49,4 +49,3 @@ jobs:
         event_trigger_type: google.pubsub.topic.publish
         event_trigger_resource: projects/duong-dev/topics/discord-covid-update2
         deploy_timeout: '30s'
-        source_dir: dist
