@@ -229,7 +229,7 @@ const publishCovidData = async (targetServers, covidStatesData) => {
             await axios.post(hook, {
                 username: `COVID Daily ${getDate()}`,
                 embeds,
-                content: `:dumpling: Data retrieved from [COVID Live](${baseurl}) :dumpling: \n:red_envelope: Source code available [here](https://github.com/duong/covid-bot) :red_envelope:`
+                content: `Data retrieved from [COVID Live](${baseurl}) \n Source code available [here](https://github.com/duong/covid-bot)`
             })
         } catch (e) {
             console.error('Failed to publish data ', embeds)
