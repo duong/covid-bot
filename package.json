@@ -8,16 +8,11 @@
     "dev": "RUN_DEV=true TARGET_SERVERS=$(cat ./secrets/input.yml) npx ts-node src/index.ts",
     "lint": "gts lint",
     "clean": "gts clean",
-    "compile": "tsc",
-    "fix": "gts fix",
-    "prepare": "yarn run compile",
-    "pretest": "yarn run compile",
-    "posttest": "yarn run lint"
+    "compile": "tsc"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.1.0",
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.10",
     "winston": "^3.7.2",

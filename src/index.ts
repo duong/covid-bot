@@ -321,6 +321,8 @@ if (process.env.RUN_DEV) {
  * @param {!Object} event Event payload.
  * @param {!Object} context Metadata for the event.
  */
-export default function helloPubSub() {
+const helloPubSub = () => {
   main();
-}
+};
+
+module.exports = { helloPubSub };
