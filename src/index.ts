@@ -3,6 +3,8 @@ const YAML = require('yaml');
 const { createLogger, format, transports } = require('winston');
 const axios = require('axios');
 
+type State = 'nsw' | 'qld' | 'vic' | 'act' | 'wa' | 'sa' | 'nt' | 'tas'
+
 const {
   combine, timestamp, prettyPrint,
 } = format;
@@ -192,11 +194,11 @@ const scrapStateData = (data: any) => {
   return stateData;
 };
 
-const mergeStatesData = (covidStatesData: { [state: string] : any; }) => {
+const mergeStatesData = (covidStatesData: { [state: string] : any; }, serverStates: State[]) => {
   const embeds = [];
 
-  for (let i = 0; i < states.length; i += 1) {
-    const state = states[i];
+  for (let i = 0; i < serverStates.length; i += 1) {
+    const state = serverStates[i];
 
     embeds.push({
       title: `**${state.toUpperCase()}**`,
@@ -254,7 +256,7 @@ const publishCovidData = async (targetServers: any, covidStatesData: any) => {
     logger.info('processing target server, ', targetServer);
     const { hook } = targetServer;
 
-    const embeds = mergeStatesData(covidStatesData);
+    const embeds = mergeStatesData(covidStatesData, targetServer.states);
     logger.info('embeds', embeds);
     try {
       // eslint-disable-next-line no-await-in-loop
