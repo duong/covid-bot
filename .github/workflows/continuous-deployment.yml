@@ -49,3 +49,4 @@ jobs:
         event_trigger_type: google.pubsub.topic.publish
         event_trigger_resource: projects/duong-dev/topics/discord-covid-update2
         deploy_timeout: '30s'
+        secret_environment_variables: 'TARGET_SERVERS=projects/374547579835/secrets/TARGET_SERVERS/versions/3'
